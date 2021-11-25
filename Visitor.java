@@ -257,20 +257,20 @@ public class Visitor extends lab7BaseVisitor<Void> {
                 }
             }
             if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = alloca ");
-            globalStorage += "    %" + (num + 1) + " = alloca ";
+            else globalStorage += "    %" + (num + 1) + " = alloca ";
 
             for (int i = 0; i < cntArrDimension; i++) {
                 if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i]);
-                globalStorage += "[" + arrLenArr[i] + " x ";
+                else globalStorage += "[" + arrLenArr[i] + " x ";
             }
             if (!globalVarFlag) System.out.print("i32");
-            globalStorage += "i32";
+            else globalStorage += "i32";
             for (int i = 0; i < cntArrDimension; i++) {
                 if (!globalVarFlag) System.out.print("]");
-                globalStorage += "]";
+                else globalStorage += "]";
             }
             if (!globalVarFlag) System.out.println("");
-            globalStorage += "\n";
+            else globalStorage += "\n";
             temp = ++num;
 
             variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 3, true));
@@ -392,59 +392,59 @@ public class Visitor extends lab7BaseVisitor<Void> {
 
                     if (cntArrDimension == 2) {
                         if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
-                        globalStorage += "    %" + (num + 1) + " = getelementptr ";
+                        else globalStorage += "    %" + (num + 1) + " = getelementptr ";
                         for (int i2 = 0; i2 < cntArrDimension; i2++) {
                             if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i2]);
-                            globalStorage += "[" + arrLenArr[i2] + " x ";
+                            else globalStorage += "[" + arrLenArr[i2] + " x ";
                         }
                         if (!globalVarFlag) System.out.print("i32");
-                        globalStorage += "i32";
+                        else globalStorage += "i32";
                         for (int i2 = 0; i2 < cntArrDimension; i2++) {
                             if (!globalVarFlag) System.out.print("]");
-                            globalStorage += "]";
+                            else globalStorage += "]";
                         }
                         if (!globalVarFlag) System.out.print(", ");
-                        globalStorage += ", ";
+                        else globalStorage += ", ";
                         for (int i2 = 0; i2 < cntArrDimension; i2++) {
                             if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i2]);
-                            globalStorage += "[" + arrLenArr[i2] + " x ";
+                            else globalStorage += "[" + arrLenArr[i2] + " x ";
                         }
                         if (!globalVarFlag) System.out.print("i32");
-                        globalStorage += "i32";
+                        else globalStorage += "i32";
                         for (int i2 = 0; i2 < cntArrDimension; i2++) {
                             if (!globalVarFlag) System.out.print("]");
-                            globalStorage += "]";
+                            else globalStorage += "]";
                         }
                         if (!globalVarFlag)
                             System.out.println("* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num);
-                        globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
+                        else globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
                         num++;
 
                         if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
-                        globalStorage += "    %" + (num + 1) + " = getelementptr ";
+                        else globalStorage += "    %" + (num + 1) + " = getelementptr ";
 
                         if (!globalVarFlag) System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[1], arrLenArr[1]);
-                        globalStorage += "[" + arrLenArr[1] + " x i32], [" + arrLenArr[1] + " x i32]* ";
+                        else globalStorage += "[" + arrLenArr[1] + " x i32], [" + arrLenArr[1] + " x i32]* ";
 
                         if (!globalVarFlag) System.out.println("%" + num + ", i32 0, i32 " + split2Num);
-                        globalStorage += "%" + num + ", i32 0, i32 " + split2Num + "\n";
+                        else globalStorage += "%" + num + ", i32 0, i32 " + split2Num + "\n";
                         temp = ++num;
                     } else {
                         if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
-                        globalStorage += "    %" + (num + 1) + " = getelementptr ";
+                        else globalStorage += "    %" + (num + 1) + " = getelementptr ";
 
                         if (!globalVarFlag) System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[0], arrLenArr[0]);
-                        globalStorage += "[" + arrLenArr[0] + " x i32], [" + arrLenArr[0] + " x i32]* ";
+                        else globalStorage += "[" + arrLenArr[0] + " x i32], [" + arrLenArr[0] + " x i32]* ";
 
                         if (!globalVarFlag)
                             System.out.println(Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num);
-                        globalStorage += "%" + num + ", i32 0, i32 " + split2Num + "\n";
+                        else globalStorage += Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num + "\n";
                         temp = ++num;
                     }
 
                     s = new PostfixExpression().func(s2);
                     if (!globalVarFlag) System.out.println("    store i32 " + s + ", i32* %" + temp);
-                    globalStorage += "    store i32 " + s + ", i32* %" + temp + "\n";
+                    else globalStorage += "    store i32 " + s + ", i32* %" + temp + "\n";
 
                     if (cntArrDimension == 1) {
                         variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, true));
@@ -514,23 +514,30 @@ public class Visitor extends lab7BaseVisitor<Void> {
                         cntArrDimension++;
                     }
                 }
-                System.out.print("    %" + (num + 1) + " = alloca ");
+                if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = alloca ");
+                else globalStorage += "    %" + (num + 1) + " = alloca ";
+
                 for (int i = 0; i < cntArrDimension; i++) {
-                    System.out.printf("[%d x ", arrLenArr[i]);
+                    if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i]);
+                    else globalStorage += "[" + arrLenArr[i] + " x ";
                 }
-                System.out.print("i32");
+                if (!globalVarFlag) System.out.print("i32");
+                else globalStorage += "i32";
                 for (int i = 0; i < cntArrDimension; i++) {
-                    System.out.print("]");
+                    if (!globalVarFlag) System.out.print("]");
+                    else globalStorage += "]";
                 }
-                System.out.println("");
+                if (!globalVarFlag) System.out.println("");
+                else globalStorage += "\n";
                 temp = ++num;
 
                 variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 3, false));
 
-                int t1 = cntArrDimension == 1 ? 1 : arrLenArr[0];
-                int t2 = cntArrDimension == 1 ? arrLenArr[0] : arrLenArr[1];
                 int split1Num = 0;
                 int split2Num = 0;
+
+                int t1 = cntArrDimension == 1 ? 1 : arrLenArr[0];
+                int t2 = cntArrDimension == 1 ? arrLenArr[0] : arrLenArr[1];
                 for (int i = 0; i < t1; i++) {
                     String s1 = "";
                     s1 = "{";
@@ -538,6 +545,7 @@ public class Visitor extends lab7BaseVisitor<Void> {
                         s1 += "0,";
                     }
                     s1 += "0}";
+
                     s1 = s1.strip();
                     s1 = s1.substring(1, s1.length() - 1);
                     String[] split1 = s1.split(",");
@@ -554,39 +562,63 @@ public class Visitor extends lab7BaseVisitor<Void> {
                         }
 
                         if (cntArrDimension == 2) {
-                            System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            else globalStorage += "    %" + (num + 1) + " = getelementptr ";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.printf("[%d x ", arrLenArr[i2]);
+                                if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i2]);
+                                else globalStorage += "[" + arrLenArr[i2] + " x ";
                             }
-                            System.out.print("i32");
+                            if (!globalVarFlag) System.out.print("i32");
+                            else globalStorage += "i32";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.print("]");
+                                if (!globalVarFlag) System.out.print("]");
+                                else globalStorage += "]";
                             }
-                            System.out.print(", ");
+                            if (!globalVarFlag) System.out.print(", ");
+                            else globalStorage += ", ";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.printf("[%d x ", arrLenArr[i2]);
+                                if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i2]);
+                                else globalStorage += "[" + arrLenArr[i2] + " x ";
                             }
-                            System.out.print("i32");
+                            if (!globalVarFlag) System.out.print("i32");
+                            else globalStorage += "i32";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.print("]");
+                                if (!globalVarFlag) System.out.print("]");
+                                else globalStorage += "]";
                             }
-                            System.out.println("* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num);
+                            if (!globalVarFlag)
+                                System.out.println("* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num);
+                            else globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
                             num++;
-                            System.out.print("    %" + (num + 1) + " = getelementptr ");
-                            System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[1], arrLenArr[1]);
-                            System.out.println("%" + num + ", i32 0, i32 " + split2Num);
+
+                            if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            else globalStorage += "    %" + (num + 1) + " = getelementptr ";
+
+                            if (!globalVarFlag)
+                                System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[1], arrLenArr[1]);
+                            else globalStorage += "[" + arrLenArr[1] + " x i32], [" + arrLenArr[1] + " x i32]* ";
+
+                            if (!globalVarFlag) System.out.println("%" + num + ", i32 0, i32 " + split2Num);
+                            else globalStorage += "%" + num + ", i32 0, i32 " + split2Num + "\n";
                             temp = ++num;
                         } else {
-                            System.out.print("    %" + (num + 1) + " = getelementptr ");
-                            System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[0], arrLenArr[0]);
-                            System.out.println(Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num);
+                            if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            else globalStorage += "    %" + (num + 1) + " = getelementptr ";
+
+                            if (!globalVarFlag)
+                                System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[0], arrLenArr[0]);
+                            else globalStorage += "[" + arrLenArr[0] + " x i32], [" + arrLenArr[0] + " x i32]* ";
+
+                            if (!globalVarFlag)
+                                System.out.println(Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num);
+                            else globalStorage += Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num + "\n";
                             temp = ++num;
                         }
 
                         s = new PostfixExpression().func(s2);
-                        if (globalVarFlag) {
-                            System.out.println("    store i32 " + s + ", i32* %" + temp);
-                        }
+                        if (!globalVarFlag) System.out.println("    store i32 " + s + ", i32* %" + temp);
+                        else globalStorage += "    store i32 " + s + ", i32* %" + temp + "\n";
+
                         if (cntArrDimension == 1) {
                             variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, false));
                         } else {
@@ -630,15 +662,21 @@ public class Visitor extends lab7BaseVisitor<Void> {
                         cntArrDimension++;
                     }
                 }
-                System.out.print("    %" + (num + 1) + " = alloca ");
+                if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = alloca ");
+                else globalStorage += "    %" + (num + 1) + " = alloca ";
+
                 for (int i = 0; i < cntArrDimension; i++) {
-                    System.out.printf("[%d x ", arrLenArr[i]);
+                    if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i]);
+                    else globalStorage += "[" + arrLenArr[i] + " x ";
                 }
-                System.out.print("i32");
+                if (!globalVarFlag) System.out.print("i32");
+                else globalStorage += "i32";
                 for (int i = 0; i < cntArrDimension; i++) {
-                    System.out.print("]");
+                    if (!globalVarFlag) System.out.print("]");
+                    else globalStorage += "]";
                 }
-                System.out.println("");
+                if (!globalVarFlag) System.out.println("");
+                else globalStorage += "\n";
                 temp = ++num;
 
                 variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 3, false));
@@ -735,37 +773,63 @@ public class Visitor extends lab7BaseVisitor<Void> {
                         }
 
                         if (cntArrDimension == 2) {
-                            System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            else globalStorage += "    %" + (num + 1) + " = getelementptr ";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.printf("[%d x ", arrLenArr[i2]);
+                                if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i2]);
+                                else globalStorage += "[" + arrLenArr[i2] + " x ";
                             }
-                            System.out.print("i32");
+                            if (!globalVarFlag) System.out.print("i32");
+                            else globalStorage += "i32";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.print("]");
+                                if (!globalVarFlag) System.out.print("]");
+                                else globalStorage += "]";
                             }
-                            System.out.print(", ");
+                            if (!globalVarFlag) System.out.print(", ");
+                            else globalStorage += ", ";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.printf("[%d x ", arrLenArr[i2]);
+                                if (!globalVarFlag) System.out.printf("[%d x ", arrLenArr[i2]);
+                                else globalStorage += "[" + arrLenArr[i2] + " x ";
                             }
-                            System.out.print("i32");
+                            if (!globalVarFlag) System.out.print("i32");
+                            else globalStorage += "i32";
                             for (int i2 = 0; i2 < cntArrDimension; i2++) {
-                                System.out.print("]");
+                                if (!globalVarFlag) System.out.print("]");
+                                else globalStorage += "]";
                             }
-                            System.out.println("* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num);
+                            if (!globalVarFlag)
+                                System.out.println("* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num);
+                            else globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
                             num++;
-                            System.out.print("    %" + (num + 1) + " = getelementptr ");
-                            System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[1], arrLenArr[1]);
-                            System.out.println("%" + num + ", i32 0, i32 " + split2Num);
+
+                            if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            else globalStorage += "    %" + (num + 1) + " = getelementptr ";
+
+                            if (!globalVarFlag)
+                                System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[1], arrLenArr[1]);
+                            else globalStorage += "[" + arrLenArr[1] + " x i32], [" + arrLenArr[1] + " x i32]* ";
+
+                            if (!globalVarFlag) System.out.println("%" + num + ", i32 0, i32 " + split2Num);
+                            else globalStorage += "%" + num + ", i32 0, i32 " + split2Num + "\n";
                             temp = ++num;
                         } else {
-                            System.out.print("    %" + (num + 1) + " = getelementptr ");
-                            System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[0], arrLenArr[0]);
-                            System.out.println(Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num);
+                            if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
+                            else globalStorage += "    %" + (num + 1) + " = getelementptr ";
+
+                            if (!globalVarFlag)
+                                System.out.printf("[%d x i32], [%d x i32]* ", arrLenArr[0], arrLenArr[0]);
+                            else globalStorage += "[" + arrLenArr[0] + " x i32], [" + arrLenArr[0] + " x i32]* ";
+
+                            if (!globalVarFlag)
+                                System.out.println(Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num);
+                            else globalStorage += Variable.getArrayStore(var) + ", i32 0, i32 " + split2Num + "\n";
                             temp = ++num;
                         }
 
                         s = new PostfixExpression().func(s2);
-                        System.out.println("    store i32 " + s + ", i32* %" + temp);
+                        if (!globalVarFlag) System.out.println("    store i32 " + s + ", i32* %" + temp);
+                        else globalStorage += "    store i32 " + s + ", i32* %" + temp + "\n";
+
                         if (cntArrDimension == 1) {
                             variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, false));
                         } else {
@@ -779,7 +843,6 @@ public class Visitor extends lab7BaseVisitor<Void> {
                     split2Num = 0;
                 }
             }
-
         }
         return null;
     }
