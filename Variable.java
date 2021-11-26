@@ -160,7 +160,7 @@ public class Variable {
             System.out.printf("[%d x [%d x i32]], [%d x [%d x i32]]* %s, i32 0, i32 %s\n", v.arrSize1, v.arrSize2, v.arrSize1, v.arrSize2, v.store, s1);
             Visitor.num++;
             System.out.print("    %" + (Visitor.num + 1) + " = getelementptr ");
-            System.out.printf("[%d x i32], [%d x i32]* %s, i32 0, i32 %s\n", v.arrSize1, v.arrSize1, "%" + Visitor.num, s2);
+            System.out.printf("[%d x i32], [%d x i32]* %s, i32 0, i32 %s\n", v.arrSize2, v.arrSize2, "%" + Visitor.num, s2);
             Visitor.num++;
             return "%" + Visitor.num;
 
