@@ -48,13 +48,19 @@ public class PostfixExpression {
             int num = 0;
             String string = "";
             boolean flag = false;
+            boolean arrayFlag = false;
 
             if (Character.isLetter(str1[i]) || str1[i] == '_' || str1[i] == '@') {
                 string += str1[i];
                 i++;
                 flag = true;
                 for (; i < str1.length && (Character.isDigit(str1[i]) || Character.isLetter(str1[i]) || str1[i] == '_'
-                        || str1[i] == '[' || str1[i] == ']'); i++) {
+                        || str1[i] == '[' || str1[i] == ']' || arrayFlag); i++) {
+                    if (str1[i] == '[') {
+                        arrayFlag = true;
+                    } else if (str1[i] == ']') {
+                        arrayFlag = false;
+                    }
                     string += str1[i];
                 }
             }
@@ -68,6 +74,17 @@ public class PostfixExpression {
                         System.out.println("    %" + (Visitor.num + 1) + " = call i32 @getint()");
                     } else if (string.equals("@getch")) {
                         System.out.println("    %" + (Visitor.num + 1) + " = call i32 @getch()");
+                    } else if (string.contains("[") && string.contains("]")) {
+                        String var = string.substring(0, string.indexOf("["));
+                        String exp1 = string.substring(string.indexOf("["), string.indexOf("]")).substring(1);
+                        if (string.indexOf("]") == string.length() - 1) {
+                            String s_ = Variable.getArrayElementStore(var, exp1, "");
+                            System.out.println("    %" + (Visitor.num + 1) + " = load i32, i32* " + s_);
+                        } else {
+                            String exp2 = string.substring(string.lastIndexOf("["), string.lastIndexOf("]")).substring(1);
+                            String s_ = Variable.getArrayElementStore(var, exp1, exp2);
+                            System.out.println("    %" + (Visitor.num + 1) + " = load i32, i32* " + s_);
+                        }
                     } else {
                         System.out.println("    %" + (Visitor.num + 1) + " = load i32, i32* " + Variable.getStore(string));
                     }

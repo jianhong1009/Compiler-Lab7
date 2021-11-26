@@ -74,10 +74,28 @@ public class Visitor extends lab7BaseVisitor<Void> {
     @Override
     public Void visitStmt(lab7Parser.StmtContext ctx) {
         if (ctx.lVal() != null) {
-            if (Variable.isConst(ctx.lVal().getText()) || Variable.isArray(ctx.lVal().getText())) {
-                System.exit(1);
-            }
             String var = ctx.lVal().getText();
+            String str = "";
+
+            if (var.contains("[") && var.contains("]") && Variable.isArray(ctx.lVal().ident().getText())) {
+                if (ctx.lVal().exp().size() == 1) {
+                    exp = "";
+                    visit(ctx.lVal().exp(0));
+                    str = Variable.getArrayElementStore(ctx.lVal().ident().getText(), exp, "");
+                } else {
+                    exp = "";
+                    visit(ctx.lVal().exp(0));
+                    String exp1 = exp;
+                    exp = "";
+                    visit(ctx.lVal().exp(1));
+                    str = Variable.getArrayElementStore(ctx.lVal().ident().getText(), exp1, exp);
+                }
+            } else if (Variable.isConst(var) || Variable.isArray(var)) {
+                System.exit(1);
+            } else {
+                str = Variable.getStore(var);
+            }
+
             exp = "";
             visit(ctx.exp());
             String s = "";
@@ -87,7 +105,8 @@ public class Visitor extends lab7BaseVisitor<Void> {
                 s = "%" + num;
                 funcFlag = false;
             }
-            System.out.println("    store i32 " + s + ", i32* " + Variable.getStore(var));
+            System.out.println("    store i32 " + s + ", i32* " + str);
+
         } else if (ctx.return_() != null) {
             exp = "";
             visit(ctx.exp());
@@ -245,17 +264,14 @@ public class Visitor extends lab7BaseVisitor<Void> {
                 exp = "";
                 visit(e);
                 s = new PostfixExpression().func(exp);
-                if (Integer.parseInt(s) <= 0) {
+                if (Integer.parseInt(s) < 0) {
                     System.exit(1);
                 }
                 arrLenArr[arrLen++] = Integer.parseInt(s);
                 globalVarFlag = tempGlobalFlag;
+                cntArrDimension++;
             }
-            for (int i : arrLenArr) {
-                if (i != 0) {
-                    cntArrDimension++;
-                }
-            }
+
             if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = alloca ");
             else globalStorage += "    %" + (num + 1) + " = alloca ";
 
@@ -273,7 +289,8 @@ public class Visitor extends lab7BaseVisitor<Void> {
             else globalStorage += "\n";
             temp = ++num;
 
-            variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 3, true));
+            variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(),
+                    3, true, cntArrDimension, arrLenArr[0], arrLenArr[1]));
         }
 
         exp = "";
@@ -311,11 +328,15 @@ public class Visitor extends lab7BaseVisitor<Void> {
             globalVarFlag = true;
             System.out.println("    store i32 " + s + ", i32* %" + temp);
             s = new PostfixExpression().func(exp);
-            variableList.add(new Variable(var, "%" + temp, "null", Integer.parseInt(s), blockNumStack.peek(), 2, true));
+            variableList.add(new Variable(var, "%" + temp, "null", Integer.parseInt(s), blockNumStack.peek(),
+                    2, true, 0, 0, 0));
             globalVarFlag = false;
+
         } else if (ctx.constExp().size() == 0) {
             System.out.println("@" + var + " = dso_local global i32 " + s);
-            variableList.add(new Variable(var, "@" + var, "null", Integer.parseInt(s), blockNumStack.peek(), 2, true));
+            variableList.add(new Variable(var, "@" + var, "null", Integer.parseInt(s), blockNumStack.peek(),
+                    2, true, 0, 0, 0));
+
         } else if (ctx.constExp().size() > 0) {
             if ((exp.equals("{}") || exp.equals("{ }")) && cntArrDimension == 2) {
                 exp = "{{}}";
@@ -447,9 +468,11 @@ public class Visitor extends lab7BaseVisitor<Void> {
                     else globalStorage += "    store i32 " + s + ", i32* %" + temp + "\n";
 
                     if (cntArrDimension == 1) {
-                        variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, true));
+                        variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(),
+                                2, true, 0, 0, 0));
                     } else {
-                        variableList.add(new Variable(var + "[" + split1Num + "][" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, true));
+                        variableList.add(new Variable(var + "[" + split1Num + "][" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(),
+                                2, true, 0, 0, 0));
                     }
 
                     split2Num++;
@@ -491,10 +514,14 @@ public class Visitor extends lab7BaseVisitor<Void> {
             if (!globalVarFlag && ctx.constExp().size() == 0) {
                 System.out.println("    %" + (num + 1) + " = alloca i32");
                 temp = ++num;
-                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 1, false));
+                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(),
+                        1, false, 0, 0, 0));
+
             } else if (globalVarFlag && ctx.constExp().size() == 0) {
                 System.out.println("@" + var + " = dso_local global i32 0");
-                variableList.add(new Variable(var, "@" + var, "null", 0, blockNumStack.peek(), 1, false));
+                variableList.add(new Variable(var, "@" + var, "null", 0, blockNumStack.peek(),
+                        1, false, 0, 0, 0));
+
             } else {
                 int arrLen = 0;
                 for (lab7Parser.ConstExpContext e : ctx.constExp()) {
@@ -503,17 +530,14 @@ public class Visitor extends lab7BaseVisitor<Void> {
                     exp = "";
                     visit(e);
                     s = new PostfixExpression().func(exp);
-                    if (Integer.parseInt(s) <= 0) {
+                    if (Integer.parseInt(s) < 0) {
                         System.exit(1);
                     }
                     arrLenArr[arrLen++] = Integer.parseInt(s);
                     globalVarFlag = tempGlobalFlag;
+                    cntArrDimension++;
                 }
-                for (int i : arrLenArr) {
-                    if (i != 0) {
-                        cntArrDimension++;
-                    }
-                }
+
                 if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = alloca ");
                 else globalStorage += "    %" + (num + 1) + " = alloca ";
 
@@ -531,7 +555,8 @@ public class Visitor extends lab7BaseVisitor<Void> {
                 else globalStorage += "\n";
                 temp = ++num;
 
-                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 3, false));
+                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(),
+                        3, false, cntArrDimension, arrLenArr[0], arrLenArr[1]));
 
                 int split1Num = 0;
                 int split2Num = 0;
@@ -588,7 +613,8 @@ public class Visitor extends lab7BaseVisitor<Void> {
                             }
                             if (!globalVarFlag)
                                 System.out.println("* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num);
-                            else globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
+                            else
+                                globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
                             num++;
 
                             if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
@@ -620,9 +646,11 @@ public class Visitor extends lab7BaseVisitor<Void> {
                         else globalStorage += "    store i32 " + s + ", i32* %" + temp + "\n";
 
                         if (cntArrDimension == 1) {
-                            variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, false));
+                            variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(),
+                                    2, false, 0, 0, 0));
                         } else {
-                            variableList.add(new Variable(var + "[" + split1Num + "][" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, false));
+                            variableList.add(new Variable(var + "[" + split1Num + "][" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(),
+                                    2, false, 0, 0, 0));
                         }
 
                         split2Num++;
@@ -651,17 +679,14 @@ public class Visitor extends lab7BaseVisitor<Void> {
                     exp = "";
                     visit(e);
                     s = new PostfixExpression().func(exp);
-                    if (Integer.parseInt(s) <= 0) {
+                    if (Integer.parseInt(s) < 0) {
                         System.exit(1);
                     }
                     arrLenArr[arrLen++] = Integer.parseInt(s);
                     globalVarFlag = tempGlobalFlag;
+                    cntArrDimension++;
                 }
-                for (int i : arrLenArr) {
-                    if (i != 0) {
-                        cntArrDimension++;
-                    }
-                }
+
                 if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = alloca ");
                 else globalStorage += "    %" + (num + 1) + " = alloca ";
 
@@ -679,7 +704,8 @@ public class Visitor extends lab7BaseVisitor<Void> {
                 else globalStorage += "\n";
                 temp = ++num;
 
-                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 3, false));
+                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(),
+                        3, false, cntArrDimension, arrLenArr[0], arrLenArr[1]));
             }
 
             exp = "";
@@ -694,10 +720,14 @@ public class Visitor extends lab7BaseVisitor<Void> {
 
             if (!globalVarFlag && ctx.constExp().size() == 0) {
                 System.out.println("    store i32 " + s + ", i32* %" + temp);
-                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(), 2, false));
+                variableList.add(new Variable(var, "%" + temp, "null", 0, blockNumStack.peek(),
+                        2, false, 0, 0, 0));
+
             } else if (ctx.constExp().size() == 0) {
                 System.out.println("@" + var + " = dso_local global i32 " + s);
-                variableList.add(new Variable(var, "@" + var, "null", 0, blockNumStack.peek(), 2, false));
+                variableList.add(new Variable(var, "@" + var, "null", 0, blockNumStack.peek(),
+                        2, false, 0, 0, 0));
+
             } else if (ctx.constExp().size() > 0) {
                 if ((exp.equals("{}") || exp.equals("{ }")) && cntArrDimension == 2) {
                     exp = "{{}}";
@@ -799,7 +829,8 @@ public class Visitor extends lab7BaseVisitor<Void> {
                             }
                             if (!globalVarFlag)
                                 System.out.println("* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num);
-                            else globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
+                            else
+                                globalStorage += "* " + Variable.getArrayStore(var) + ", i32 0, i32 " + split1Num + "\n";
                             num++;
 
                             if (!globalVarFlag) System.out.print("    %" + (num + 1) + " = getelementptr ");
@@ -831,9 +862,11 @@ public class Visitor extends lab7BaseVisitor<Void> {
                         else globalStorage += "    store i32 " + s + ", i32* %" + temp + "\n";
 
                         if (cntArrDimension == 1) {
-                            variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, false));
+                            variableList.add(new Variable(var + "[" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(),
+                                    2, false, 0, 0, 0));
                         } else {
-                            variableList.add(new Variable(var + "[" + split1Num + "][" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(), 2, false));
+                            variableList.add(new Variable(var + "[" + split1Num + "][" + split2Num + "]", "%" + temp, "null", 0, blockNumStack.peek(),
+                                    2, false, 0, 0, 0));
                         }
 
                         split2Num++;
@@ -946,35 +979,41 @@ public class Visitor extends lab7BaseVisitor<Void> {
             visit(ctx.primaryExp());
         } else if (ctx.ident() != null) {
             String func = ctx.ident().getText();
-            if (func.equals("getint") || func.equals("getch") || func.equals("putint") || func.equals("putch")) {
-                if (func.equals("getint") && ctx.funcRParams() == null) {
+            if (func.equals("getint") && ctx.funcRParams() == null) {
 //                    System.out.println("    %" + (num + 1) + " = call i32 @getint()");
 //                    num++;
 //                    funcFlag = true;
-                    exp += "@getint";
-                } else if (func.equals("putint") && ctx.funcRParams() != null) {
-                    exp = "";
-                    visit(ctx.funcRParams());
-                    String s = new PostfixExpression().func(exp);
-                    System.out.println("    call void @putint(i32 " + s + ")");
-                    funcFlag = true;
-                } else if (func.equals("getch") && ctx.funcRParams() == null) {
+                exp += "@getint";
+            } else if (func.equals("putint") && ctx.funcRParams() != null) {
+                exp = "";
+                visit(ctx.funcRParams());
+                String s = new PostfixExpression().func(exp);
+                System.out.println("    call void @putint(i32 " + s + ")");
+                funcFlag = true;
+            } else if (func.equals("getch") && ctx.funcRParams() == null) {
 //                    System.out.println("    %" + (num + 1) + " = call i32 @getch()");
 //                    num++;
 //                    funcFlag = true;
-                    exp += "@getch";
-                } else if (func.equals("putch") && ctx.funcRParams() != null) {
-                    exp = "";
-                    visit(ctx.funcRParams());
-                    String s = new PostfixExpression().func(exp);
-                    System.out.println("    call void @putch(i32 " + s + ")");
-                    funcFlag = true;
-                } else {
-                    System.exit(1);
-                }
+                exp += "@getch";
+            } else if (func.equals("putch") && ctx.funcRParams() != null) {
+                exp = "";
+                visit(ctx.funcRParams());
+                String s = new PostfixExpression().func(exp);
+                System.out.println("    call void @putch(i32 " + s + ")");
+                funcFlag = true;
+            } else if (func.equals("getarray") && ctx.funcRParams() != null) {
+                exp += "@getarray";
+            } else if (func.equals("putarray") && ctx.funcRParams() != null) {
+                exp = "";
+                visit(ctx.funcRParams());
+                String[] split = exp.split(",");
+                String s1 = new PostfixExpression().func(split[0]);
+                System.out.println("    call void @putarray(i32 " + s1 + ", " + Variable.getArrayFormat(split[1]) + ")");
+                funcFlag = true;
             } else {
                 System.exit(1);
             }
+
         } else {
             visit(ctx.unaryOp());
             visit(ctx.unaryExp());
