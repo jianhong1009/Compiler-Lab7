@@ -8,7 +8,8 @@ public class PostfixExpression2 {
 
         for (int i = 0; i < s.length(); i++) {
             if ((s.charAt(i) == '-' || s.charAt(i) == '+') &&
-                    (i == 0 || s.charAt(i - 1) == '(' || s.charAt(i - 1) == '=' || s.charAt(i - 1) == '~')) {
+                    (i == 0 || s.charAt(i - 1) == '(' || s.charAt(i - 1) == '=' || s.charAt(i - 1) == '~'
+                            || s.charAt(i - 1) == '>' || s.charAt(i - 1) == '<' || s.charAt(i - 1) == '》' || s.charAt(i - 1) == '《')) {
                 if (i == 0) {
                     s = "0" + s;
                 } else {
@@ -80,7 +81,7 @@ public class PostfixExpression2 {
             int num = 0;
             String string = "";
             boolean flag = false;
-            boolean arrayFlag = false;
+            int arrayFlag = 0;
 
             if (str1[i] == '#') {
                 list.add("#");
@@ -93,11 +94,11 @@ public class PostfixExpression2 {
                 i++;
                 flag = true;
                 for (; i < str1.length && (Character.isDigit(str1[i]) || Character.isLetter(str1[i]) || str1[i] == '_'
-                        || str1[i] == '[' || str1[i] == ']' || arrayFlag); i++) {
+                        || str1[i] == '[' || str1[i] == ']' || arrayFlag >= 1); i++) {
                     if (str1[i] == '[') {
-                        arrayFlag = true;
+                        arrayFlag++;
                     } else if (str1[i] == ']') {
-                        arrayFlag = false;
+                        arrayFlag--;
                     }
                     string += str1[i];
                 }
