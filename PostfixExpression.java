@@ -48,18 +48,18 @@ public class PostfixExpression {
             int num = 0;
             String string = "";
             boolean flag = false;
-            boolean arrayFlag = false;
+            int arrayFlag = 0;
 
             if (Character.isLetter(str1[i]) || str1[i] == '_' || str1[i] == '@') {
                 string += str1[i];
                 i++;
                 flag = true;
                 for (; i < str1.length && (Character.isDigit(str1[i]) || Character.isLetter(str1[i]) || str1[i] == '_'
-                        || str1[i] == '[' || str1[i] == ']' || arrayFlag); i++) {
+                        || str1[i] == '[' || str1[i] == ']' || arrayFlag >= 1); i++) {
                     if (str1[i] == '[') {
-                        arrayFlag = true;
+                        arrayFlag++;
                     } else if (str1[i] == ']') {
-                        arrayFlag = false;
+                        arrayFlag--;
                     }
                     string += str1[i];
                 }
@@ -75,14 +75,56 @@ public class PostfixExpression {
                     } else if (string.equals("@getch")) {
                         System.out.println("    %" + (Visitor.num + 1) + " = call i32 @getch()");
                     } else if (string.contains("[") && string.contains("]")) {
+                        int endFlag = 0;
+                        String tempStr = "";
+                        String tempStr2 = "";
+                        int tempNum = 0;
                         String var = string.substring(0, string.indexOf("["));
-                        String exp1 = string.substring(string.indexOf("["), string.indexOf("]")).substring(1);
-                        if (string.indexOf("]") == string.length() - 1) {
-                            String s_ = Variable.getArrayElementStore(var, exp1, "");
+
+                        for (char c : string.toCharArray()) {
+                            tempNum++;
+                            if (c == '[') {
+                                if (endFlag == 0) {
+                                    endFlag++;
+                                    continue;
+                                }
+                                endFlag++;
+                            }
+                            if (c == ']') {
+                                endFlag--;
+                                if (endFlag == 0) {
+                                    break;
+                                }
+                            }
+                            if (endFlag > 0) {
+                                tempStr += c + "";
+                            }
+                        }
+
+                        if (string.substring(tempNum).equals("")) {
+                            String s_ = Variable.getArrayElementStore(var, tempStr, "");
                             System.out.println("    %" + (Visitor.num + 1) + " = load i32, i32* " + s_);
                         } else {
-                            String exp2 = string.substring(string.lastIndexOf("["), string.lastIndexOf("]")).substring(1);
-                            String s_ = Variable.getArrayElementStore(var, exp1, exp2);
+                            for (char c : string.substring(tempNum).toCharArray()) {
+                                tempNum++;
+                                if (c == '[') {
+                                    if (endFlag == 0) {
+                                        endFlag++;
+                                        continue;
+                                    }
+                                    endFlag++;
+                                }
+                                if (c == ']') {
+                                    endFlag--;
+                                    if (endFlag == 0) {
+                                        break;
+                                    }
+                                }
+                                if (endFlag > 0) {
+                                    tempStr2 += c + "";
+                                }
+                            }
+                            String s_ = Variable.getArrayElementStore(var, tempStr, tempStr2);
                             System.out.println("    %" + (Visitor.num + 1) + " = load i32, i32* " + s_);
                         }
                     } else {
